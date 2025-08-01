@@ -10,6 +10,8 @@ import {
 import { api } from "../convex/_generated/api";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useState } from "react";
+import { GameDayDemo } from "./components/GameDayDemo";
+import { PlayDemo } from "./components/PlayDemo";
 
 export default function App() {
   return (
@@ -64,7 +66,7 @@ function SignInForm() {
           e.preventDefault();
           console.log('email', email)
           try {
-            await signIn("resend", { email, flow })
+            await signIn("custom", { email, flow })
           } catch (error) {
             if (!(error instanceof Error)) {
               setError("An unknown error occurred");
@@ -114,13 +116,9 @@ function SignInForm() {
 }
 
 function Content() {
-  const { viewer, numbers } =
-    useQuery(api.myFunctions.listNumbers, {
-      count: 10,
-    }) ?? {};
-  const addNumber = useMutation(api.myFunctions.addNumber);
+  const clubs = useQuery(api.myFunctions.listClubs);
 
-  if (viewer === undefined || numbers === undefined) {
+  if (clubs === undefined) {
     return (
       <div className="mx-auto">
         <p>loading... (consider a loading skeleton)</p>
@@ -129,44 +127,46 @@ function Content() {
   }
 
   return (
-    <div className="flex flex-col gap-8 max-w-lg mx-auto">
-      <p>Welcome {viewer ?? "Anonymous"}!</p>
-      <p>
-        Click the button below and open this page in another window - this data
-        is persisted in the Convex cloud database!
-      </p>
-      <p>
-        <button
-          className="bg-dark dark:bg-light text-light dark:text-dark text-sm px-4 py-2 rounded-md border-2"
-          onClick={() => {
-            void addNumber({ value: Math.floor(Math.random() * 10) });
-          }}
-        >
-          Add a random number
-        </button>
-      </p>
-      <p>
-        Numbers:{" "}
-        {numbers?.length === 0
-          ? "Click the button!"
-          : (numbers?.join(", ") ?? "...")}
-      </p>
-      <p>
-        Edit{" "}
-        <code className="text-sm font-bold font-mono bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded-md">
-          convex/myFunctions.ts
-        </code>{" "}
-        to change your backend
-      </p>
-      <p>
-        Edit{" "}
-        <code className="text-sm font-bold font-mono bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded-md">
-          src/App.tsx
-        </code>{" "}
-        to change your frontend
-      </p>
+    <div className="flex flex-col gap-8 max-w-6xl mx-auto">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold mb-4">Pickleball League Manager</h1>
+        <p className="text-lg text-gray-600">
+          Welcome to your Convex-powered pickleball league management system!
+        </p>
+      </div>
+
+      {/* Demo Components */}
+      <GameDayDemo />
+      
+      {/* Play Demo */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-xl font-semibold mb-4">Play Functionality Demo</h2>
+        <p className="text-gray-600 mb-4">
+          This demonstrates the play functionality including court management, scoring, and substitute handling.
+        </p>
+        <PlayDemo />
+      </div>
+
+      {/* Clubs Section */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-xl font-semibold mb-4">Available Clubs</h2>
+        {clubs && clubs.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {clubs.map((club) => (
+              <div key={club._id} className="p-4 border border-gray-200 rounded-lg">
+                <h3 className="font-semibold">{club.name}</h3>
+                {club.description && <p className="text-gray-600 text-sm">{club.description}</p>}
+                {club.location && <p className="text-gray-500 text-xs">{club.location}</p>}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500">No clubs found. Create some clubs to get started!</p>
+        )}
+      </div>
+
       <div className="flex flex-col">
-        <p className="text-lg font-bold">Useful resources:</p>
+        <p className="text-lg font-bold">Migration Complete!</p>
         <div className="flex gap-2">
           <div className="flex flex-col gap-2 w-1/2">
             <ResourceCard
@@ -175,10 +175,9 @@ function Content() {
               href="https://docs.convex.dev/home"
             />
             <ResourceCard
-              title="Stack articles"
-              description="Learn about best practices, use cases, and more from a growing
-            collection of articles, videos, and walkthroughs."
-              href="https://www.typescriptlang.org/docs/handbook/2/basic-types.html"
+              title="Convex Auth"
+              description="Learn about authentication and user management in Convex."
+              href="https://docs.convex.dev/auth"
             />
           </div>
           <div className="flex flex-col gap-2 w-1/2">
