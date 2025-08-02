@@ -1,219 +1,102 @@
-"use client";
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/Layout/Layout';
+import AuthLayout from './components/Layout/AuthLayout';
+import { AuthProvider } from './components/Contexts/AuthContext';
+import { ThemeProvider } from './components/Contexts/ThemeContext';
+import { Toaster } from 'react-hot-toast';
+import GameDayScoringView from './Views/GameDayScoringView';
+import AcceptInviteView from './Views/Auth/AcceptInviteView';
+import LeagueJoinRequests from './components/admin/LeagueJoinRequests';
 
-import {
-  Authenticated,
-  Unauthenticated,
-  useConvexAuth,
-  useMutation,
-  useQuery,
-} from "convex/react";
-import { api } from "../convex/_generated/api";
-import { useAuthActions } from "@convex-dev/auth/react";
-import { useState } from "react";
-import { GameDayDemo } from "./components/GameDayDemo";
-import { PlayDemo } from "./components/PlayDemo";
+// Lazy load views for better performance
+const HomeView = React.lazy(() => import('./Views/HomeView'));
+const SignInView = React.lazy(() => import('./Views/Auth/SignInView'));
+const SignUpView = React.lazy(() => import('./Views/Auth/SignUpView'));
+const EditLeagueView = React.lazy(() => import('./Views/Leagues/EditLeagueView'));
+const LeagueOverviewLayout = React.lazy(() => import('./Views/Leagues/LeagueOverviewLayout'));
+const LeagueOverviewTab = React.lazy(() => import('./Views/Leagues/LeagueOverviewTab'));
+const LeaguePlayersTab = React.lazy(() => import('./Views/Leagues/LeaguePlayersTab'));
+const LeagueGameDaysTab = React.lazy(() => import('./Views/Leagues/LeagueGameDaysTab'));
+const LeagueRankingsTab = React.lazy(() => import('./Views/Leagues/LeagueRankingsTab'));
+const LeagueWeeklyPerformanceTab = React.lazy(() => import('./Views/Leagues/LeagueWeeklyPerformanceTab'));
+const LeagueNextWeekTab = React.lazy(() => import('./Views/Leagues/LeagueNextWeekTab'));
+const CreateLeagueView = React.lazy(() => import('./Views/Leagues/CreateLeagueView')); 
+const ForgotPasswordView = React.lazy(() => import('./Views/Auth/ForgotPasswordView'));
+const ResetPasswordView = React.lazy(() => import('./Views/Auth/ResetPasswordView'));
+const MyLeaguesView = React.lazy(() => import('./Views/Leagues/MyLeaguesView'));
+const StandingsView = React.lazy(() => import('./Views/Standings/StandingsView'));
+const PlayersView = React.lazy(() => import('./Views/Players/PlayersView'));
+const ProfileView = React.lazy(() => import('./Views/Profile/ProfileView'));
+const PlayView = React.lazy(() => import('./Views/Play/PlayView'));
+const ClubsView = React.lazy(() => import('./Views/Clubs/ClubsView'));
+const CreateClubView = React.lazy(() => import('./Views/Clubs/CreateClubView'));
+const ViewClubView = React.lazy(() => import('./Views/Clubs/ViewClubView'));
+const EditClubView = React.lazy(() => import('./Views/Clubs/EditClubView'));
+const GameDayControlView = React.lazy(() => import('./Views/Admin/GameDayControlView'));
+const CourtSchedulerView = React.lazy(() => import('./Views/CourtSchedulerView'));
+const AdminPanel = React.lazy(() => import('./Views/Admin/AdminPanel'));
+const CommunityPlayView = React.lazy(() => import('./Views/Play/CommunityPlayView'));
+const CreateRoundRobinSetView = React.lazy(() => import('./Views/Play/Create/CreateRoundRobinSetView'));
+const ViewEvent = React.lazy(() => import('./Views/Play/ViewEvent'));
+const FindLeagueView = React.lazy(() => import('./Views/Leagues/FindLeagueView'));
+const LeaguePublicView = React.lazy(() => import('./Views/Leagues/LeaguePublicView'));
 
-export default function App() {
+function App() {
   return (
-    <>
-      <header className="sticky top-0 z-10 bg-light dark:bg-dark p-4 border-b-2 border-slate-200 dark:border-slate-800">
-        Convex + React + Convex Auth
-        <SignOutButton />
-      </header>
-      <main className="p-8 flex flex-col gap-16">
-        <h1 className="text-4xl font-bold text-center">
-          Convex + React + Convex Auth
-        </h1>
-        <Authenticated>
-          <Content />
-        </Authenticated>
-        <Unauthenticated>
-          <SignInForm />
-        </Unauthenticated>
-      </main>
-    </>
+    <ThemeProvider>
+      <AuthProvider>
+        <Toaster position="top-right" />
+        <React.Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route path="signin" element={<SignInView />} />
+              <Route path="signup" element={<SignUpView />} />
+              <Route path="forgot-password" element={<ForgotPasswordView />} />
+              <Route path="reset-password" element={<ResetPasswordView />} />
+              <Route path="accept-invite/:token" element={<AcceptInviteView />} />
+              <Route path="leagues/:id/view" element={<LeaguePublicView />} />
+              
+              {/* Protected Routes */}
+              <Route element={<AuthLayout />}>
+                <Route index element={<HomeView />} />
+                <Route path="leagues" element={<MyLeaguesView />} />
+                <Route path="leagues/create" element={<CreateLeagueView />} />
+                <Route path="leagues/:id" element={<LeagueOverviewLayout />}>
+                  <Route index element={<LeagueOverviewTab />} />
+                  <Route path="players" element={<LeaguePlayersTab />} />
+                  <Route path="game-days" element={<LeagueGameDaysTab />} />
+                  <Route path="rankings" element={<LeagueRankingsTab />} />
+                  <Route path="weekly" element={<LeagueWeeklyPerformanceTab />} />
+                  <Route path="next-week" element={<LeagueNextWeekTab />} />
+                  <Route path="join-requests" element={<LeagueJoinRequests />} />
+                  <Route path="*" element={<Navigate to="." />} />
+                </Route>
+                <Route path="leagues/:id/edit" element={<EditLeagueView />} />
+                <Route path="clubs" element={<ClubsView />} />
+                <Route path="clubs/:id" element={<ViewClubView />} />
+                <Route path="clubs/:id/edit" element={<EditClubView />} />
+                <Route path="clubs/create" element={<CreateClubView />} />
+                <Route path="players" element={<PlayersView />} />
+                <Route path="profile" element={<ProfileView />} />
+                <Route path="standings" element={<StandingsView />} />
+                <Route path="play" element={<CommunityPlayView />} />
+                <Route path="play/create/round-robin-set" element={<CreateRoundRobinSetView />} />
+                <Route path="play/event/:id" element={<ViewEvent />} />
+                <Route path="admin/game-day" element={<GameDayControlView />} />
+                <Route path="leagues/:leagueId/game-day/:gameDayId/scheduler" element={<CourtSchedulerView />} />
+                <Route path="leagues/:leagueId/game-day/:gameDayId/scoring" element={<GameDayScoringView />} />
+                <Route path="admin" element={<AdminPanel />} />
+                <Route path="leagues/find" element={<FindLeagueView />} />
+              </Route>
+              
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </React.Suspense>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
-function SignOutButton() {
-  const { isAuthenticated } = useConvexAuth();
-  const { signOut } = useAuthActions();
-  return (
-    <>
-      {isAuthenticated && (
-        <button
-          className="bg-slate-200 dark:bg-slate-800 text-dark dark:text-light rounded-md px-2 py-1"
-          onClick={() => void signOut()}
-        >
-          Sign out
-        </button>
-      )}
-    </>
-  );
-}
-
-function SignInForm() {
-  const { signIn } = useAuthActions();
-  const [flow, setFlow] = useState<"signIn" | "signUp">("signIn");
-  const [email, setEmail] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
-  return (
-    <div className="flex flex-col gap-8 w-96 mx-auto">
-      <p>Log in to see the numbers</p>
-      <form
-        className="flex flex-col gap-2"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          console.log('email', email)
-          try {
-            await signIn("custom", { email, flow })
-          } catch (error) {
-            if (!(error instanceof Error)) {
-              setError("An unknown error occurred");
-              return;
-            }
-            setError(error.message);
-          }
-        }}
-      >
-      <input
-        className="bg-light dark:bg-dark text-dark dark:text-light rounded-md p-2 border-2 border-slate-200 dark:border-slate-800"
-        type="email"
-        name="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <button
-        className="bg-dark dark:bg-light text-light dark:text-dark rounded-md"
-        type="submit"
-      >
-        {flow === "signIn" ? "Sign in" : "Sign up"}
-      </button>
-      <div className="flex flex-row gap-2">
-        <span>
-          {flow === "signIn"
-            ? "Don't have an account?"
-            : "Already have an account?"}
-        </span>
-        <span
-          className="text-dark dark:text-light underline hover:no-underline cursor-pointer"
-          onClick={() => setFlow(flow === "signIn" ? "signUp" : "signIn")}
-        >
-          {flow === "signIn" ? "Sign up instead" : "Sign in instead"}
-        </span>
-      </div>
-      {error && (
-        <div className="bg-red-500/20 border-2 border-red-500/50 rounded-md p-2">
-          <p className="text-dark dark:text-light font-mono text-xs">
-            Error signing in: {error}
-          </p>
-        </div>
-      )}
-    </form>
-    </div >
-  );
-}
-
-function Content() {
-  const clubs = useQuery(api.myFunctions.listClubs);
-
-  if (clubs === undefined) {
-    return (
-      <div className="mx-auto">
-        <p>loading... (consider a loading skeleton)</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-8 max-w-6xl mx-auto">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold mb-4">Pickleball League Manager</h1>
-        <p className="text-lg text-gray-600">
-          Welcome to your Convex-powered pickleball league management system!
-        </p>
-      </div>
-
-      {/* Demo Components */}
-      <GameDayDemo />
-      
-      {/* Play Demo */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4">Play Functionality Demo</h2>
-        <p className="text-gray-600 mb-4">
-          This demonstrates the play functionality including court management, scoring, and substitute handling.
-        </p>
-        <PlayDemo />
-      </div>
-
-      {/* Clubs Section */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4">Available Clubs</h2>
-        {clubs && clubs.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {clubs.map((club) => (
-              <div key={club._id} className="p-4 border border-gray-200 rounded-lg">
-                <h3 className="font-semibold">{club.name}</h3>
-                {club.description && <p className="text-gray-600 text-sm">{club.description}</p>}
-                {club.location && <p className="text-gray-500 text-xs">{club.location}</p>}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500">No clubs found. Create some clubs to get started!</p>
-        )}
-      </div>
-
-      <div className="flex flex-col">
-        <p className="text-lg font-bold">Migration Complete!</p>
-        <div className="flex gap-2">
-          <div className="flex flex-col gap-2 w-1/2">
-            <ResourceCard
-              title="Convex docs"
-              description="Read comprehensive documentation for all Convex features."
-              href="https://docs.convex.dev/home"
-            />
-            <ResourceCard
-              title="Convex Auth"
-              description="Learn about authentication and user management in Convex."
-              href="https://docs.convex.dev/auth"
-            />
-          </div>
-          <div className="flex flex-col gap-2 w-1/2">
-            <ResourceCard
-              title="Templates"
-              description="Browse our collection of templates to get started quickly."
-              href="https://www.convex.dev/templates"
-            />
-            <ResourceCard
-              title="Discord"
-              description="Join our developer community to ask questions, trade tips & tricks,
-            and show off your projects."
-              href="https://www.convex.dev/community"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ResourceCard({
-  title,
-  description,
-  href,
-}: {
-  title: string;
-  description: string;
-  href: string;
-}) {
-  return (
-    <div className="flex flex-col gap-2 bg-slate-200 dark:bg-slate-800 p-4 rounded-md h-28 overflow-auto">
-      <a href={href} className="text-sm underline hover:no-underline">
-        {title}
-      </a>
-      <p className="text-xs">{description}</p>
-    </div>
-  );
-}
+export default App;
